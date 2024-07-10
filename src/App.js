@@ -34,9 +34,7 @@ function App() {
     <div className="App">
       {user ? (
         <div>
-          <button variant="secondary" onClick={handleSignOut}>
-            Cerrar Sesión
-          </button>
+          
           <AddData />
         </div>
       ) : (

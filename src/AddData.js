@@ -1,9 +1,12 @@
 // src/AddData.js
 import React, { useState, useEffect } from "react";
-import { db } from "./firebase";
-import { collection, addDoc, getDocs } from "firebase/firestore";
+import { db, auth } from "./firebase";
+import { collection, addDoc, getDocs, doc, updateDoc } from "firebase/firestore";
+import { signOut } from "firebase/auth";
 import { toast } from "react-toastify";
-import { Container, Form, Button, Table } from "react-bootstrap";
+import { Container, Form, Button, Row, Col } from "react-bootstrap";
+import { FaSignOutAlt, FaUsers } from "react-icons/fa";
+import UsersModal from "./UsersModal";
 
 const AddData = () => {
   const [apellido, setApellido] = useState("");
@@ -11,6 +14,8 @@ const AddData = () => {
   const [direccion, setDireccion] = useState("");
   const [telefono, setTelefono] = useState("");
   const [usuarios, setUsuarios] = useState([]);
+  const [editingUser, setEditingUser] = useState(null);
+  const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -29,32 +34,83 @@ const AddData = () => {
     fetchData();
   }, []);
 
-  const handleAddData = async () => {
+  const handleAddOrUpdateData = async () => {
+    if (editingUser) {
+      try {
+        const docRef = doc(db, "myCollection", editingUser.id);
+        await updateDoc(docRef, {
+          apellido,
+          nombre,
+          direccion,
+          telefono,
+        });
+        setUsuarios(usuarios.map(user => user.id === editingUser.id ? { id: editingUser.id, apellido, nombre, direccion, telefono } : user));
+        toast.success("Datos actualizados correctamente");
+      } catch (error) {
+        console.error("Error al actualizar documento: ", error);
+        toast.error("Error al actualizar datos: " + error.message);
+      }
+    } else {
+      try {
+        const docRef = await addDoc(collection(db, "myCollection"), {
+          apellido,
+          nombre,
+          direccion,
+          telefono,
+        });
+        console.log("Documento agregado con ID: ", docRef.id);
+        toast.success("Datos guardados correctamente");
+        setUsuarios([...usuarios, { id: docRef.id, apellido, nombre, direccion, telefono }]);
+      } catch (error) {
+        console.error("Error al agregar documento: ", error);
+        toast.error("Error al guardar datos: " + error.message);
+      }
+    }
+    resetForm();
+  };
+
+  const resetForm = () => {
+    setApellido("");
+    setNombre("");
+    setDireccion("");
+    setTelefono("");
+    setEditingUser(null);
+  };
+
+  const handleEdit = (user) => {
+    setApellido(user.apellido);
+    setNombre(user.nombre);
+    setDireccion(user.direccion);
+    setTelefono(user.telefono);
+    setEditingUser(user);
+    setShowModal(false);
+  };
+
+  const handleLogout = async () => {
     try {
-      const docRef = await addDoc(collection(db, "myCollection"), {
-        apellido: apellido,
-        nombre: nombre,
-        direccion: direccion,
-        telefono: telefono,
-      });
-      console.log("Documento agregado con ID: ", docRef.id);
-      toast.success("Datos guardados correctamente");
-      // Limpiar los campos después de guardar
-      setApellido("");
-      setNombre("");
-      setDireccion("");
-      setTelefono("");
-      // Actualizar la lista de usuarios
-      setUsuarios([...usuarios, { id: docRef.id, apellido, nombre, direccion, telefono }]);
+      await signOut(auth);
+      toast.success("Sesión cerrada correctamente");
     } catch (error) {
-      console.error("Error al agregar documento: ", error);
-      toast.error("Error al guardar datos: " + error.message);
+      console.error("Error al cerrar sesión: ", error);
+      toast.error("Error al cerrar sesión: " + error.message);
     }
   };
 
+  const handleShowModal = () => setShowModal(true);
+  const handleCloseModal = () => setShowModal(false);
+
   return (
     <Container className="mt-4">
-      <h1 className="mb-4">Agregar Usuario</h1>
+      <Row className="mb-4">
+        <Col>
+          <h1>{editingUser ? "Editar Usuario" : "Agregar Usuario"}</h1>
+        </Col>
+        <Col className="text-end">
+          <Button variant="outline-danger" onClick={handleLogout}>
+            <FaSignOutAlt /> Cerrar Sesión
+          </Button>
+        </Col>
+      </Row>
       <Form>
         <Form.Group className="mb-3" controlId="apellido">
           <Form.Label>Apellido</Form.Label>
@@ -96,32 +152,25 @@ const AddData = () => {
             required
           />
         </Form.Group>
-        <Button variant="primary" onClick={handleAddData}>
-          Guardar
+        <Button variant="primary" onClick={handleAddOrUpdateData}>
+          {editingUser ? "Actualizar" : "Guardar"}
+        </Button>
+        {editingUser && (
+          <Button variant="secondary" onClick={resetForm} className="ms-2">
+            Cancelar
+          </Button>
+        )}
+        <Button variant="info" onClick={handleShowModal} className="ms-2">
+          <FaUsers /> Ver Usuarios Guardados
         </Button>
       </Form>
 
-      <h2 className="mt-4">Usuarios Guardados</h2>
-      <Table striped bordered hover>
-        <thead>
-          <tr>
-            <th>Apellido</th>
-            <th>Nombre</th>
-            <th>Dirección</th>
-            <th>Teléfono</th>
-          </tr>
-        </thead>
-        <tbody>
-          {usuarios.map((usuario) => (
-            <tr key={usuario.id}>
-              <td>{usuario.apellido}</td>
-              <td>{usuario.nombre}</td>
-              <td>{usuario.direccion}</td>
-              <td>{usuario.telefono}</td>
-            </tr>
-          ))}
-        </tbody>
-      </Table>
+      <UsersModal
+        show={showModal}
+        handleClose={handleCloseModal}
+        usuarios={usuarios}
+        onEdit={handleEdit}
+      />
     </Container>
   );
 };
