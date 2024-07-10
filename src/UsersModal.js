@@ -3,19 +3,19 @@ import React from "react";
 import { Modal, Button } from "react-bootstrap";
 import DataTable from "./DataTable";
 
-const UsersModal = ({ show, handleClose, usuarios, onEdit }) => {
+const UsersModal = ({ show, onHide, usuarios, onEdit }) => {
   return (
-    <Modal show={show} onHide={handleClose} size="lg">
+    <Modal show={show} onHide={onHide} size="lg" aria-labelledby="contained-modal-title-vcenter" centered>
       <Modal.Header closeButton>
-        <Modal.Title>Usuarios Guardados</Modal.Title>
+        <Modal.Title id="contained-modal-title-vcenter">
+          Usuarios Guardados
+        </Modal.Title>
       </Modal.Header>
       <Modal.Body>
         <DataTable usuarios={usuarios} onEdit={onEdit} />
       </Modal.Body>
       <Modal.Footer>
-        <Button variant="secondary" onClick={handleClose}>
-          Cerrar
-        </Button>
+        <Button onClick={onHide}>Cerrar</Button>
       </Modal.Footer>
     </Modal>
   );

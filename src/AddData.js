@@ -28,7 +28,7 @@ const AddData = () => {
         setUsuarios(usuariosData);
       } catch (error) {
         console.error("Error al obtener los documentos: ", error);
-        toast.error("Error al obtener datos: " + error.message);
+        toast.error("Error al obtener datos: " + error.message, { autoClose: 1000 });
       }
     };
     fetchData();
@@ -45,10 +45,10 @@ const AddData = () => {
           telefono,
         });
         setUsuarios(usuarios.map(user => user.id === editingUser.id ? { id: editingUser.id, apellido, nombre, direccion, telefono } : user));
-        toast.success("Datos actualizados correctamente");
+        toast.success("Datos actualizados correctamente", { autoClose: 1000 });
       } catch (error) {
         console.error("Error al actualizar documento: ", error);
-        toast.error("Error al actualizar datos: " + error.message);
+        toast.error("Error al actualizar datos: " + error.message, { autoClose: 1000 });
       }
     } else {
       try {
@@ -59,11 +59,11 @@ const AddData = () => {
           telefono,
         });
         console.log("Documento agregado con ID: ", docRef.id);
-        toast.success("Datos guardados correctamente");
+        toast.success("Datos guardados correctamente", { autoClose: 1000 });
         setUsuarios([...usuarios, { id: docRef.id, apellido, nombre, direccion, telefono }]);
       } catch (error) {
         console.error("Error al agregar documento: ", error);
-        toast.error("Error al guardar datos: " + error.message);
+        toast.error("Error al guardar datos: " + error.message, { autoClose: 1000 });
       }
     }
     resetForm();
@@ -89,10 +89,10 @@ const AddData = () => {
   const handleLogout = async () => {
     try {
       await signOut(auth);
-      toast.success("Sesión cerrada correctamente");
+      toast.success("Sesión cerrada correctamente", { autoClose: 1000 });
     } catch (error) {
       console.error("Error al cerrar sesión: ", error);
-      toast.error("Error al cerrar sesión: " + error.message);
+      toast.error("Error al cerrar sesión: " + error.message, { autoClose: 1000 });
     }
   };
 
@@ -155,22 +155,11 @@ const AddData = () => {
         <Button variant="primary" onClick={handleAddOrUpdateData}>
           {editingUser ? "Actualizar" : "Guardar"}
         </Button>
-        {editingUser && (
-          <Button variant="secondary" onClick={resetForm} className="ms-2">
-            Cancelar
-          </Button>
-        )}
-        <Button variant="info" onClick={handleShowModal} className="ms-2">
-          <FaUsers /> Ver Usuarios Guardados
+        <Button variant="info" className="ms-2" onClick={handleShowModal}>
+          <FaUsers /> Usuarios Guardados
         </Button>
       </Form>
-
-      <UsersModal
-        show={showModal}
-        handleClose={handleCloseModal}
-        usuarios={usuarios}
-        onEdit={handleEdit}
-      />
+      <UsersModal show={showModal} onHide={handleCloseModal} usuarios={usuarios} onEdit={handleEdit} />
     </Container>
   );
 };
