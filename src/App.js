@@ -22,13 +22,7 @@ function App() {
     return () => unsubscribe();
   }, []);
 
-  const handleSignOut = async () => {
-    try {
-      await signOut(auth);
-    } catch (error) {
-      console.error("Error al cerrar sesión: ", error);
-    }
-  };
+  
 
   return (
     <div className="App">
