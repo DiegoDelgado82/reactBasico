@@ -35,6 +35,10 @@ const AddData = () => {
   }, []);
 
   const handleAddOrUpdateData = async () => {
+    if (!apellido || !nombre || !direccion || !telefono) {
+      toast.error("Por favor complete todos los campos", { autoClose: 1000 });
+      return;
+    }
     if (editingUser) {
       try {
         const docRef = doc(db, "myCollection", editingUser.id);

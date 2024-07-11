@@ -1,75 +1,58 @@
-// src/Auth.js
+// src/Login.js
 import React, { useState } from "react";
-import { auth, db } from "./firebase";
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from "firebase/auth";
-import { doc, setDoc } from "firebase/firestore";
+import { auth } from "./firebase";
+import { signInWithEmailAndPassword } from "firebase/auth";
 import { toast } from "react-toastify";
-import { Container, Form, Button, Card } from "react-bootstrap"; // Asegúrate de importar los componentes necesarios
+import { Container, Form, Button, Row, Col, Image } from "react-bootstrap";
+import logo from './assets/logo/logo.png'; // Importa tu logo
 
-const Auth = ({ setUser }) => {
+const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [isRegister, setIsRegister] = useState(false);
 
-  const handleAuth = async () => {
+  const handleLogin = async () => {
     try {
-      if (isRegister) {
-        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        await setDoc(doc(db, "users", userCredential.user.uid), {
-          email: email,
-        });
-        setUser(userCredential.user);
-        toast.success("Registrado exitosamente");
-      } else {
-        const userCredential = await signInWithEmailAndPassword(auth, email, password);
-        setUser(userCredential.user);
-        toast.success("Inicio de sesión exitoso");
-      }
+      await signInWithEmailAndPassword(auth, email, password);
+      toast.success("Ingreso exitoso", { autoClose: 1000 });
     } catch (error) {
-      console.error("Error en la autenticación:", error);
-      toast.error("Error en la autenticación: " + error.message);
+      console.error("Error de acceso: ", error);
+      toast.error("Error de acceso", { autoClose: 1000 });
     }
   };
 
   return (
-    <Container className="d-flex justify-content-center align-items-center" style={{ minHeight: "100vh" }}>
-      <Card style={{ width: "400px" }}>
-        <Card.Body>
-          <h2 className="text-center mb-4">{isRegister ? "Registro" : "Inicio de Sesión"}</h2>
+    <Container className="mt-4">
+      <Row className="justify-content-md-center">
+        <Col md="4" className="text-center">
+          <Image src={logo} fluid className="mb-4 logo" /> {/* Agrega el logo aquí */}
+          <h2>Acceso al sistema</h2>
           <Form>
-            <Form.Group id="email">
-              <Form.Label>Correo electrónico</Form.Label>
+            <Form.Group className="mb-3" controlId="formBasicEmail">
+              <Form.Label>Email</Form.Label>
               <Form.Control
                 type="email"
-                placeholder="Correo electrónico"
+                placeholder="Ingrese su email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                required
               />
             </Form.Group>
-            <Form.Group id="password" className="mt-3">
+            <Form.Group className="mb-3" controlId="formBasicPassword">
               <Form.Label>Contraseña</Form.Label>
               <Form.Control
                 type="password"
-                placeholder="Contraseña"
+                placeholder="Ingrese su contraseña"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                required
               />
             </Form.Group>
-            <Button className="w-100 mt-4" onClick={handleAuth}>
-              {isRegister ? "Registrarse" : "Iniciar Sesión"}
+            <Button variant="primary" onClick={handleLogin}>
+              Ingresar
             </Button>
           </Form>
-          <div className="w-100 text-center mt-3">
-            <Button variant="link" onClick={() => setIsRegister(!isRegister)}>
-              {isRegister ? "¿Ya tienes cuenta? Inicia Sesión" : "¿No tienes cuenta? Regístrate"}
-            </Button>
-          </div>
-        </Card.Body>
-      </Card>
+        </Col>
+      </Row>
     </Container>
   );
 };
 
-export default Auth;
+export default Login;
